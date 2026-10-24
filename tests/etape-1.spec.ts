@@ -3,14 +3,16 @@ import { horizontalOverflow, opacityOf, pixelDifference, scrollRoom, shotPath, w
 
 /** Moments de la timeline photographiés (fraction de la traversée de la scène). */
 const MOMENTS = [
-  { at: 0.12, name: '02-cadrage' },
-  { at: 0.3, name: '03-debarras-30' },
-  { at: 0.55, name: '04-debarras-55' },
-  { at: 0.8, name: '05-lumiere' },
-  { at: 1, name: '06-place-nette' },
+  { at: 0.08, name: '02-cadrage' },
+  { at: 0.25, name: '03-debarras-maison' },
+  { at: 0.42, name: '04-debarras-entreprise' },
+  { at: 0.77, name: '05-situations' },
+  { at: 0.88, name: '06-lumiere' },
+  { at: 1, name: '07-place-nette' },
 ] as const
 
-test.describe('Étape 1 — chargement et pièce 3D', () => {
+// Non-régression de l'accueil (écran de chargement, hero 3D, scène « Place nette »).
+test.describe('Accueil — chargement et pièce 3D', () => {
   test('écran de chargement : site inerte derrière, puis levée', async ({ page }, info) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('.splash')
@@ -30,10 +32,10 @@ test.describe('Étape 1 — chargement et pièce 3D', () => {
     await expect(page.locator('h1')).toContainText('Bon Débarras')
     await expect(page.locator('h1')).toContainText('Débarras de maisons')
     // Devis gratuit visible dans le premier écran (en-tête + hero), téléphone cliquable
-    const quote = page.locator('header a.action[href="#devis"]')
+    const quote = page.locator('header a.action[href="/devis"]')
     await expect(quote).toBeInViewport()
-    await expect(page.locator('[data-hero-copy] a[href="#devis"]')).toBeInViewport()
-    await expect(page.locator('header a[href^="tel:"]')).toBeVisible()
+    await expect(page.locator('[data-hero-copy] a[href="/devis"]')).toBeInViewport()
+    await expect(page.locator('header a[href="tel:+33662832657"]')).toBeVisible()
     expect(await horizontalOverflow(page)).toBe(0)
   })
 
@@ -54,37 +56,40 @@ test.describe('Étape 1 — chargement et pièce 3D', () => {
     await waitForSite(page)
     // La caméra « respire » sur écran tactile : on compare la position de la souris immobile (desktop).
     await page.mouse.move(5, 5)
-    await scrollRoom(page, 0.42, 1800)
+    await scrollRoom(page, 0.5, 1800)
     const forward = await page.screenshot()
     await scrollRoom(page, 1, 1800)
-    await scrollRoom(page, 0.42, 1800)
-    const backward = await page.screenshot({ path: shotPath(info, '07-retour-42') })
+    await scrollRoom(page, 0.5, 1800)
+    const backward = await page.screenshot({ path: shotPath(info, '08-retour-50') })
 
     const difference = await pixelDifference(page, forward, backward)
     info.annotations.push({ type: 'différence aller / retour', description: `${(difference * 100).toFixed(2)} % des pixels` })
-    console.log(`[${info.project.name}] écart aller / retour à 42 % : ${(difference * 100).toFixed(2)} % des pixels`)
+    console.log(`[${info.project.name}] écart aller / retour à 50 % : ${(difference * 100).toFixed(2)} % des pixels`)
     if (!info.project.use.isMobile) expect(difference).toBeLessThan(0.01)
 
     await scrollRoom(page, 0, 1800)
     expect(await opacityOf(page, '[data-hero-copy]')).toBe(1)
     expect(await opacityOf(page, '#place-nette-title')).toBe(0)
-    await page.screenshot({ path: shotPath(info, '08-retour-hero') })
+    await page.screenshot({ path: shotPath(info, '09-retour-hero') })
   })
 
   test('mouvement réduit : aucun épinglage, états finaux lisibles', async ({ page }, info) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
     await waitForSite(page, 600)
-    await page.screenshot({ path: shotPath(info, '09-statique-hero') })
-    const height = await page.evaluate(() => document.querySelector<HTMLElement>('#accueil')?.offsetHeight ?? 0)
-    const viewport = page.viewportSize()?.height ?? 0
-    expect(height).toBeLessThan(viewport * 2.6)
+    await page.screenshot({ path: shotPath(info, '10-statique-hero') })
+    // Aucun épinglage : la scène n'est pas en `position: sticky`
+    const position = await page.evaluate(() => {
+      const stage = [...(document.querySelector('#accueil')?.children ?? [])].find((element) => element.tagName === 'DIV')
+      return stage ? getComputedStyle(stage).position : 'absente'
+    })
+    expect(position).toBe('relative')
     const cleared = page.locator('#place-nette-title')
     await cleared.scrollIntoViewIfNeeded()
     await expect(cleared).toBeVisible()
     await expect(page.locator('img[src*="piece-apres"]')).toBeVisible()
     await page.waitForTimeout(400)
-    await page.screenshot({ path: shotPath(info, '10-statique-fin') })
+    await page.screenshot({ path: shotPath(info, '11-statique-fin') })
     expect(await horizontalOverflow(page)).toBe(0)
   })
 
@@ -95,8 +100,9 @@ test.describe('Étape 1 — chargement et pièce 3D', () => {
     await page.keyboard.press('Tab')
     await expect(page.locator(':focus')).toHaveText('Aller au contenu')
     await page.keyboard.press('Tab')
-    await expect(page.locator(':focus')).toHaveText('Aller au devis')
+    await expect(page.locator(':focus')).toHaveText('Demander un devis')
     await page.keyboard.press('Enter')
-    await expect(page.locator('#devis')).toBeInViewport()
+    await expect(page).toHaveURL(/\/devis$/)
+    await expect(page.locator('h1')).toHaveText('Demander un devis gratuit')
   })
 })

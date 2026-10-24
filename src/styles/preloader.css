@@ -138,6 +138,11 @@
   opacity: 0.85;
 }
 
+/* Sans JavaScript, rien ne lèverait la porte : elle n'est pas affichée. */
+html:not(.js) .splash {
+  display: none;
+}
+
 /* Moins d'animations : tampon déjà posé, la porte s'efface en fondu. */
 @media (prefers-reduced-motion: reduce) {
   .splash {

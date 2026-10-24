@@ -4,9 +4,10 @@ import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { ActionLink } from '../../components/ActionLink'
 import { BrandTitle } from '../../components/BrandTitle'
 import { Icon } from '../../components/Icon'
-import { ProvisionalText } from '../../components/Provisional'
+import { SmartLink } from '../../components/SmartLink'
 import { company } from '../../data/company'
-import { QUOTE_ANCHOR } from '../../data/navigation'
+import { getPage } from '../../data/pages'
+import { QUOTE_PATH } from '../../data/navigation'
 import { heroCopy } from '../../data/room-story'
 import { serviceCategories } from '../../data/services'
 import type { HeroCopyProps } from './types'
@@ -26,7 +27,7 @@ const fadeUp = (delay: number, play: boolean, still: boolean) => ({
 export const HeroCopy = memo(function HeroCopy({ play }: HeroCopyProps) {
   const still = usePrefersReducedMotion()
   return (
-    <div data-hero-copy className="flex flex-col items-start">
+    <div data-hero-copy data-intro className="pointer-events-auto flex flex-col items-start">
       <motion.p {...fadeUp(0.05, play, still)} className="tag-kraft">
         <Icon name="box" className="size-4 text-bleu" />
         {heroCopy.eyebrow}
@@ -51,12 +52,12 @@ export const HeroCopy = memo(function HeroCopy({ play }: HeroCopyProps) {
       </motion.p>
 
       <motion.div {...fadeUp(1.45, play, still)} className="mt-5 flex flex-wrap items-center gap-2.5 sm:gap-3 lg:mt-7">
-        <ActionLink href={QUOTE_ANCHOR} size="lg" icon="arrow">
+        <ActionLink href={QUOTE_PATH} size="lg" icon="arrow">
           <span className="sm:hidden">Devis gratuit</span>
           <span className="hidden sm:inline">Demander un devis gratuit</span>
         </ActionLink>
         <ActionLink href={company.phone.value.href} variant="secondary" size="lg" icon="phone">
-          Appeler <ProvisionalText value={{ value: company.phone.value.display, provisional: company.phone.provisional }} className="ml-1 hidden min-[1440px]:inline" />
+          Appeler <span className="ml-1 hidden min-[1440px]:inline">{company.phone.value.display}</span>
         </ActionLink>
       </motion.div>
 
@@ -67,13 +68,13 @@ export const HeroCopy = memo(function HeroCopy({ play }: HeroCopyProps) {
       >
         <span className="mr-1 font-mono text-xs tracking-[0.12em] text-ink-soft uppercase">{heroCopy.situationsLabel}</span>
         {serviceCategories.map((category) => (
-          <a
+          <SmartLink
             key={category.id}
-            href={`#prestations-${category.id}`}
+            href={getPage(category.pageId).path}
             className="footprint rounded-full border-bleu/35 px-3.5 py-1.5 text-sm font-medium text-ink transition-colors hover:border-solid hover:border-bleu hover:bg-bleu-soft"
           >
             {category.chip}
-          </a>
+          </SmartLink>
         ))}
       </motion.nav>
     </div>

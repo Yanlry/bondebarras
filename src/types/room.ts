@@ -73,4 +73,6 @@ export interface RoomProgress {
   clear: number
   /** Lumière : poussière dissipée, sol et rayon de soleil éclaircis. */
   light: number
+  /** Retour d'objets déjà sortis (0 = sorti, 1 = revenu à sa place), par id d'objet. */
+  recall: Record<string, number>
 }

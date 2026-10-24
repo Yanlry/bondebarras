@@ -1,10 +1,13 @@
 /**
  * Mesure réelle des FPS sur le build de production (`npm run build` d'abord).
  *
- * Pour chaque profil : chargement, fin de l'intro, 3 s de hero (souris en
- * mouvement sur desktop), puis traversée complète de la scène de la pièce en
- * 8 s. Relevés : FPS moyen, frames > 20 ms et > 33 ms, et Long Animation
- * Frames (> 50 ms) via PerformanceObserver.
+ * Pour chaque profil :
+ * - accueil : chargement, fin de l'intro, 3 s de hero (souris en mouvement sur
+ *   desktop), puis traversée complète de la scène de la pièce en 8 s ;
+ * - transition entre pages : clic sur un lien interne (bande « scotch ») ;
+ * - page secondaire : défilement complet d'une page de prestation en 4 s.
+ * Relevés : FPS moyen, frames > 20 ms et > 33 ms, et Long Animation Frames
+ * (> 50 ms) via PerformanceObserver.
  *
  * Chromium sur le GPU réel (Metal). Mobile : 390 × 844, DPR 2, CPU ralenti ×4
  * (le GPU, lui, n'est pas ralenti : à confirmer sur un vrai téléphone).
@@ -16,15 +19,18 @@
  *
  * Usage : npm run measure:fps
  */
+import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { chromium, devices } from 'playwright'
-import { preview } from 'vite'
 
 const PROFILES = [
   { name: 'desktop 1440 × 900', viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, cpu: 1, mobile: false },
   { name: 'mobile 390 × 844, CPU ×4', viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, cpu: 4, mobile: true },
 ]
 
-const server = await preview({ preview: { port: 4174, strictPort: true }, logLevel: 'error' })
+// Build servi comme par un hébergeur statique (URL propres)
+const server = spawn(process.execPath, [fileURLToPath(new URL('./serve.mjs', import.meta.url)), '4174'], { stdio: 'ignore' })
+await new Promise((resolve) => setTimeout(resolve, 600))
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] })
 const results = []
 
@@ -114,16 +120,47 @@ try {
           requestAnimationFrame(step)
         }),
     )
+    // Transition entre pages : de /prestations vers /contact par le lien du pied de page
+    await page.goto('http://localhost:4174/prestations')
+    await page.waitForTimeout(1500)
+    const transition = await measure(
+      page,
+      'transition entre pages',
+      () =>
+        new Promise((resolve) => {
+          document.querySelector('footer a[href="/contact"]').click()
+          setTimeout(resolve, 1200)
+        }),
+    )
+    // Page secondaire : défilement complet en 4 s
+    await page.goto('http://localhost:4174/prestations/debarras-succession')
+    await page.waitForTimeout(1500)
+    const secondary = await measure(
+      page,
+      'page de prestation (défilement 4 s)',
+      () =>
+        new Promise((resolve) => {
+          const end = document.documentElement.scrollHeight - window.innerHeight
+          const start = performance.now()
+          const step = (now) => {
+            const t = Math.min(1, (now - start) / 4000)
+            window.scrollTo(0, end * t)
+            if (t < 1) requestAnimationFrame(step)
+            else setTimeout(resolve, 400)
+          }
+          requestAnimationFrame(step)
+        }),
+    )
     const renderer = await page.evaluate(() => {
       const gl = document.createElement('canvas').getContext('webgl2')
       return gl?.getParameter(gl.getExtension('WEBGL_debug_renderer_info')?.UNMASKED_RENDERER_WEBGL ?? 0)
     })
-    results.push({ profile: profile.name, renderer, measures: [hero, scroll] })
+    results.push({ profile: profile.name, renderer, measures: [hero, scroll, transition, secondary] })
     await context.close()
   }
 } finally {
   await browser.close()
-  await server.close()
+  server.kill()
 }
 
 for (const result of results) {

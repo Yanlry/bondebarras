@@ -9,6 +9,7 @@ import { Footprints } from '../../three/Footprints'
 import { RoomFurniture } from '../../three/RoomFurniture'
 import { RoomLights } from '../../three/RoomLights'
 import { RoomShell } from '../../three/RoomShell'
+import { SituationAnchors } from '../../three/SituationAnchors'
 import { SunBeam } from '../../three/SunBeam'
 import type { RoomSceneProps } from './types'
 
@@ -43,6 +44,8 @@ export default memo(function RoomScene({
   play,
   onReady,
   preserveDrawingBuffer = false,
+  situations,
+  situationTargets,
 }: RoomSceneProps) {
   const plans = useMemo(() => planItems(ROOM_ITEMS.filter((item) => !compact || !item.desktopOnly)), [compact])
 
@@ -77,6 +80,7 @@ export default memo(function RoomScene({
       <SunBeam progress={progress} />
       <DustMotes progress={progress} count={compact ? 60 : 140} still={reducedMotion} />
       <CameraRig heroSlot={heroSlot} focusSlot={focusSlot} progress={progress} pointer={pointer} interactive={interactive} still={reducedMotion} />
+      {situations && situationTargets && <SituationAnchors situations={situations} targets={situationTargets} progress={progress} />}
       <FirstFrame onReady={onReady} />
     </Canvas>
   )

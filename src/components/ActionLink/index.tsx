@@ -1,5 +1,6 @@
 import { cn } from '../../lib/cn'
 import { Icon } from '../Icon'
+import { SmartLink } from '../SmartLink'
 import type { ActionLinkProps, ActionVariant } from './types'
 
 const VARIANTS: Record<ActionVariant, string> = {
@@ -8,6 +9,8 @@ const VARIANTS: Record<ActionVariant, string> = {
   secondary: 'border-2 border-bleu text-bleu hover:bg-bleu hover:text-white',
   ghost: 'text-ink hover:bg-air-deep',
   inverse: 'bg-air text-bleu hover:bg-white',
+  // Sur fond sombre (bandeau bleu) : texte clair, survol translucide
+  'ghost-inverse': 'border-2 border-air/35 text-air hover:border-air hover:bg-white/10',
 }
 
 const SIZES = {
@@ -17,12 +20,12 @@ const SIZES = {
 } as const
 
 /**
- * Bouton-lien de la marque (devis, appel, ancre). L'icône est « emportée »
- * hors du bouton au survol et une copie revient à sa place (CSS `.action`).
+ * Bouton-lien de la marque (page, appel, ancre — via `SmartLink`). L'icône est
+ * « emportée » hors du bouton au survol et une copie revient à sa place (CSS `.action`).
  */
 export function ActionLink({ variant = 'primary', size = 'md', icon, className, children, ...props }: ActionLinkProps) {
   return (
-    <a
+    <SmartLink
       {...props}
       className={cn(
         'action inline-flex items-center justify-center rounded-full font-display font-semibold tracking-[-0.01em] whitespace-nowrap',
@@ -38,6 +41,6 @@ export function ActionLink({ variant = 'primary', size = 'md', icon, className, 
           <Icon name={icon} />
         </span>
       )}
-    </a>
+    </SmartLink>
   )
 }

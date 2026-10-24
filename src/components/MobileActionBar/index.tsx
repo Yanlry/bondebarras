@@ -1,28 +1,36 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router'
 import { company } from '../../data/company'
-import { QUOTE_ANCHOR } from '../../data/navigation'
+import { QUOTE_PATH } from '../../data/navigation'
 import { useScrolledPast } from '../../hooks/useScrolledPast'
 import { cn } from '../../lib/cn'
 import { ActionLink } from '../ActionLink'
 
 /**
- * Barre d'actions mobile (Appeler / Devis gratuit), fixée en bas de l'écran
- * dès que les boutons du hero ne sont plus visibles. Elle s'efface quand le
- * formulaire de devis est à l'écran (inutile, et elle masquerait le bouton d'envoi).
+ * Barre d'actions mobile (Appeler / Devis gratuit), sur toutes les pages, dès
+ * que la page a un peu défilé. Elle s'efface quand un élément marqué
+ * `data-hide-action-bar` est à l'écran (formulaire de devis, pied de page) :
+ * elle n'y servirait à rien et masquerait des boutons.
  */
 export function MobileActionBar() {
+  const { pathname } = useLocation()
   const past = useScrolledPast(0.35)
-  const [quoteVisible, setQuoteVisible] = useState(false)
+  const [hidden, setHidden] = useState(false)
 
   useEffect(() => {
-    const quote = document.querySelector(QUOTE_ANCHOR)
-    if (!quote) return
-    const observer = new IntersectionObserver(([entry]) => setQuoteVisible(Boolean(entry?.isIntersecting)))
-    observer.observe(quote)
+    const visible = new Set<Element>()
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(entry.target)
+        else visible.delete(entry.target)
+      }
+      setHidden(visible.size > 0)
+    })
+    document.querySelectorAll('[data-hide-action-bar]').forEach((element) => observer.observe(element))
     return () => observer.disconnect()
-  }, [])
+  }, [pathname])
 
-  const shown = past && !quoteVisible
+  const shown = past && !hidden
   return (
     <div
       className={cn(
@@ -35,7 +43,7 @@ export function MobileActionBar() {
         <ActionLink href={company.phone.value.href} variant="secondary" icon="phone" className="w-full">
           Appeler
         </ActionLink>
-        <ActionLink href={QUOTE_ANCHOR} icon="arrow" className="w-full">
+        <ActionLink href={QUOTE_PATH} icon="arrow" className="w-full">
           Devis gratuit
         </ActionLink>
       </div>

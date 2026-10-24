@@ -1,4 +1,4 @@
-import type { QuoteTypeOption } from '../types/quote'
+import type { QuoteTypeId, QuoteTypeOption } from '../types/quote'
 
 /** Choix « type de débarras » du formulaire de devis. */
 export const quoteTypes: readonly QuoteTypeOption[] = [
@@ -19,3 +19,13 @@ export const quoteTypes: readonly QuoteTypeOption[] = [
  * TODO : choisir le service (formulaire hébergé, e-mail transactionnel…) et la renseigner.
  */
 export const QUOTE_ENDPOINT: string | null = null
+
+const quoteTypeIds = new Set<string>(quoteTypes.map((option) => option.id))
+
+/** Lit un type de débarras depuis l'URL (`/devis?type=succession`) ; `null` s'il est inconnu. */
+export function parseQuoteType(value: string | null): QuoteTypeId | null {
+  return value && quoteTypeIds.has(value) ? (value as QuoteTypeId) : null
+}
+
+/** Lien vers le formulaire de devis, avec un type présélectionné. */
+export const quoteLink = (type?: QuoteTypeId): string => (type ? `/devis?type=${type}` : '/devis')

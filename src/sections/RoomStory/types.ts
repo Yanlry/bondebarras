@@ -2,6 +2,7 @@ import type { RefObject } from 'react'
 import type { PointerState } from '../../hooks/usePointerRef'
 import type { Rect } from '../../types/geometry'
 import type { RoomProgress } from '../../types/room'
+import type { Situation } from '../../types/situation'
 
 /** Props de la scène 3D de la pièce (chargée à la demande). */
 export interface RoomSceneProps {
@@ -24,6 +25,15 @@ export interface RoomSceneProps {
   onReady?: () => void
   /** Conserve l'image du canvas (captures des images de secours, en développement). */
   preserveDrawingBuffer?: boolean
+  /** Scène 2 : situations et calques de leurs étiquettes, accrochés aux objets. */
+  situations?: readonly Situation[]
+  situationTargets?: RefObject<Array<HTMLElement | null>>
+}
+
+/** Props des étiquettes accrochées aux objets (scène 2). */
+export interface SituationTagsProps {
+  /** Reçoit les calques à positionner (même ordre que `data/situations.ts`). */
+  targets: RefObject<Array<HTMLElement | null>>
 }
 
 /** Props du texte du hero. */

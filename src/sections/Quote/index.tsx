@@ -5,13 +5,13 @@ import { company } from '../../data/company'
 import { QuoteForm } from './QuoteForm'
 
 /**
- * Demande de devis (version provisoire, avant la scène « La porte ») :
- * le formulaire et le téléphone, côte à côte. Rendu hors de toute zone
- * épinglée : la saisie et le clavier mobile ne sont jamais gênés.
+ * Demande de devis sur l'accueil (version provisoire, avant la scène 8
+ * « La porte ») : le formulaire et le téléphone, côte à côte, avec un lien vers
+ * la page /devis. Hors de toute zone épinglée : la saisie n'est jamais gênée.
  */
 export function Quote() {
   return (
-    <section id="devis" aria-labelledby="devis-titre" className="relative bg-white/60">
+    <section id="devis-accueil" aria-labelledby="devis-titre" className="relative bg-white/60">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div>
           <p className="tag-kraft">Devis gratuit</p>
@@ -21,10 +21,13 @@ export function Quote() {
           <p className="mt-4 max-w-[42ch] text-lg text-ink-soft">
             Décrivez-nous la situation : nous revenons vers vous avec un devis gratuit et personnalisé.
           </p>
+          <ActionLink href="/devis" variant="secondary" icon="arrow" className="mt-6">
+            Ouvrir la page Devis
+          </ActionLink>
           <div className="mt-8 rounded-2xl bg-bleu p-6 text-air">
             <p className="font-mono text-xs tracking-[0.14em] uppercase opacity-85">Plus rapide : par téléphone</p>
             <p className="mt-2 font-display text-3xl font-bold">
-              <ProvisionalText value={{ value: company.phone.value.display, provisional: company.phone.provisional }} />
+              {company.phone.value.display}
             </p>
             <p className="mt-1 flex items-center gap-2 text-sm opacity-85">
               <Icon name="clock" className="size-4" />

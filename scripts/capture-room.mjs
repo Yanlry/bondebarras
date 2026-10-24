@@ -18,7 +18,7 @@ const browser = await chromium.launch()
 try {
   for (const state of ['avant', 'apres']) {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1100 }, deviceScaleFactor: 1 })
-    await page.goto(`http://localhost:5199/?capture=${state}`)
+    await page.goto(`http://localhost:5199/__capture?etat=${state}`)
     await page.waitForFunction(() => window.__roomCaptureReady === true, null, { timeout: 30000 })
     const png = await page.screenshot({ omitBackground: true, type: 'png' })
     // Conversion PNG → WebP (avec transparence) par le navigateur lui-même

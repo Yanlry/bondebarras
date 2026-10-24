@@ -1,11 +1,18 @@
 import type { NavLink } from '../types/navigation'
 
-/** Liens de l'en-tête (ancres de la page unique). */
-export const navLinks: readonly NavLink[] = [
-  { label: 'Prestations', href: '#prestations' },
-  { label: 'Devis gratuit', href: '#devis' },
-  { label: 'Contact', href: '#contact' },
+/** Chemin de la page de devis. */
+export const QUOTE_PATH = '/devis'
+
+/** Liens principaux de l'en-tête (le menu Prestations est construit à part). */
+export const mainNav: readonly NavLink[] = [
+  { label: 'Accueil', href: '/' },
+  { label: 'Prestations', href: '/prestations' },
+  { label: 'Notre entreprise', href: '/entreprise' },
+  { label: 'Contact', href: '/contact' },
 ]
 
-/** Identifiant de la section du formulaire (lien d'évitement, boutons « Devis »). */
-export const QUOTE_ANCHOR = '#devis'
+/** Liens légaux (pied de page). */
+export const legalNav: readonly NavLink[] = [
+  { label: 'Mentions légales', href: '/mentions-legales' },
+  { label: 'Confidentialité', href: '/confidentialite' },
+]

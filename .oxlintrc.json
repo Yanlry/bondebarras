@@ -7,6 +7,11 @@
   },
   "overrides": [
     {
+      // Modules de route React Router : ils exportent `meta`, `loader`, `Layout`… à côté du composant.
+      "files": ["src/routes/**", "src/root.tsx"],
+      "rules": { "react/only-export-components": "off" }
+    },
+    {
       // Couche 3D : React Three Fiber mute volontairement les objets three.js
       // dans useFrame (à chaque frame, sans re-rendu React) : c'est le modèle prévu.
       "files": ["src/three/**", "src/sections/**/*Scene.tsx"],

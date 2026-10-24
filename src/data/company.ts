@@ -10,8 +10,8 @@ import type { Company } from '../types/company'
 export const company: Company = {
   name: 'Bon Débarras',
   tagline: 'Débarras, désencombrement et évacuation',
-  // TODO: numéro réel (affichage + format international pour le lien tel:)
-  phone: { value: { display: '0X XX XX XX XX', href: 'tel:+33000000000' }, provisional: true },
+  // Numéro officiel, fourni par Bon Débarras
+  phone: { value: { display: '06 62 83 26 57', href: 'tel:+33662832657' }, provisional: false },
   // TODO: adresse e-mail réelle
   email: { value: 'contact@exemple.fr', provisional: true },
   // TODO: adresse réelle

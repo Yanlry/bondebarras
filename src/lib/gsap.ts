@@ -8,19 +8,20 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
  */
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-// Sur mobile, la barre d'adresse qui se rétracte change la hauteur de la fenêtre :
-// inutile de tout recalculer (et de faire sauter les scènes) à chaque fois.
-ScrollTrigger.config({ ignoreMobileResize: true })
+// Tout ce qui suit touche au navigateur : rien à faire pendant le pré-rendu (Node).
+if (typeof window !== 'undefined') {
+  // Sur mobile, la barre d'adresse qui se rétracte change la hauteur de la fenêtre :
+  // inutile de tout recalculer (et de faire sauter les animations) à chaque fois.
+  ScrollTrigger.config({ ignoreMobileResize: true })
 
-// Site raconté au scroll : à chaque (re)chargement, l'histoire repart du début.
-// Passer par ScrollTrigger est indispensable : il mémorise et réapplique lui-même
-// `history.scrollRestoration` après chaque recalcul. Les ancres (#devis…) restent respectées.
-ScrollTrigger.clearScrollMemory('manual')
-if (typeof window !== 'undefined' && !window.location.hash) window.scrollTo(0, 0)
+  // Site raconté au scroll : à chaque (re)chargement, l'histoire repart du début.
+  // Passer par ScrollTrigger est indispensable : il mémorise et réapplique lui-même
+  // `history.scrollRestoration` après chaque recalcul. Les ancres restent respectées.
+  ScrollTrigger.clearScrollMemory('manual')
+  if (!window.location.hash) window.scrollTo(0, 0)
 
-// Les polices changent la hauteur des titres : on recalcule les positions une fois chargées.
-if (typeof document !== 'undefined' && 'fonts' in document) {
-  void document.fonts.ready.then(() => ScrollTrigger.refresh())
+  // Les polices changent la hauteur des titres : on recalcule les positions une fois chargées.
+  if ('fonts' in document) void document.fonts.ready.then(() => ScrollTrigger.refresh())
 }
 
 /**

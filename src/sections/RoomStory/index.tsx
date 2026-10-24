@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { Icon } from '../../components/Icon'
 import { useInViewport } from '../../hooks/useInViewport'
@@ -11,21 +11,29 @@ import { useRoomScene } from '../../hooks/useRoomScene'
 import { intro } from '../../lib/intro'
 import { supportsWebGL } from '../../lib/webgl'
 import { heroCopy, roomImages, roomSceneDescription } from '../../data/room-story'
+import { situations } from '../../data/situations'
 import type { RoomProgress } from '../../types/room'
 import { ClearedCopy } from './ClearedCopy'
 import { ClearProgress } from './ClearProgress'
 import { HeroCopy } from './HeroCopy'
+import { SituationsCopy } from './SituationsCopy'
+import { SituationTags } from './SituationTags'
+
+const noSubscribe = () => () => {}
 
 /** Scène 3D chargée à la demande : three.js n'alourdit pas le premier affichage. */
 const RoomScene = lazy(() => import('./RoomScene'))
 
 /**
- * Scènes 1 et 3 du récit : « La pièce pleine » puis « Place nette ».
+ * Début du récit : « La pièce pleine », le débarras, « Vous vous reconnaissez ? »
+ * puis « Bon débarras. ».
  *
- * Une section épinglée (CSS sticky, ~4,4 hauteurs d'écran) : le hero présente
+ * Une section épinglée (CSS sticky, ~6,4 hauteurs d'écran) : le hero présente
  * l'entreprise devant une maquette 3D de pièce encombrée qui réagit à la
  * souris ; au scroll, la pièce glisse au centre et se vide objet par objet
- * (porte, empreintes, lumière), jusqu'à « Bon débarras. » et l'appel au devis.
+ * pendant que les trois prestations principales se relaient ; dans la pièce
+ * vide, des étiquettes de situations s'épinglent sur les empreintes (chacune
+ * mène à sa prestation) ; puis la lumière revient, jusqu'à « Bon débarras. » et le devis.
  *
  * Mode statique (mouvement réduit, écran bas) : pas d'épinglage, le hero puis
  * le texte final avec l'image de la pièce vide. Sans WebGL : images avant / après.
@@ -35,7 +43,7 @@ export function RoomStory() {
   const layerRef = useRef<HTMLDivElement>(null)
   const heroSlotRef = useRef<HTMLDivElement>(null)
   const focusSlotRef = useRef<HTMLDivElement>(null)
-  const progress = useRef<RoomProgress>({ focus: 0, clear: 0, light: 0 })
+  const progress = useRef<RoomProgress>({ focus: 0, clear: 0, light: 0, recall: {} })
   const heroSlot = useRelativeRect(heroSlotRef, layerRef)
   const focusSlot = useRelativeRect(focusSlotRef, layerRef)
   const pointer = usePointerRef()
@@ -44,11 +52,13 @@ export function RoomStory() {
   const interactive = useMediaQuery('(hover: hover) and (pointer: fine)')
   const inView = useInViewport(sectionRef, '120px', true)
   const started = useIntroStarted()
-  const [webgl] = useState(supportsWebGL)
+  // Pré-rendu et hydratation : WebGL supposé disponible (cas général), confirmé ensuite par le navigateur.
+  const webgl = useSyncExternalStore(noSubscribe, supportsWebGL, () => true)
   const [failed, setFailed] = useState(false)
   const has3D = webgl && !failed
 
-  useRoomScene({ trigger: sectionRef, progress, enabled: has3D })
+  const situationTargets = useRef<Array<HTMLElement | null>>([])
+  useRoomScene({ trigger: sectionRef, progress, enabled: has3D, compact })
 
   const handleReady = useCallback(() => intro.markSceneReady(), [])
   // La 3D a planté (pilote graphique…) : images de secours, et l'écran de chargement n'attend plus.
@@ -69,7 +79,7 @@ export function RoomStory() {
       id="accueil"
       aria-labelledby="hero-title"
       data-scene={has3D ? '' : undefined}
-      className="relative scene:h-[440svh]"
+      className="relative scene:h-[720svh]"
     >
       <p className="sr-only">{roomSceneDescription}</p>
 
@@ -96,10 +106,15 @@ export function RoomStory() {
                   interactive={interactive}
                   play={started}
                   onReady={handleReady}
+                  situations={situations}
+                  situationTargets={situationTargets}
                 />
               </Suspense>
             </ErrorBoundary>
           )}
+
+          {/* Scène 2 : étiquettes accrochées aux objets (positionnées par la 3D) */}
+          <SituationTags targets={situationTargets} />
 
           {/* Emplacement de la pièce pendant le débarras (mesuré, jamais affiché) */}
           <div
@@ -108,9 +123,21 @@ export function RoomStory() {
             className="pointer-events-none invisible absolute inset-x-5 top-[13%] bottom-[37%] max-sm:[@media(max-height:760px)]:top-[11%] max-sm:[@media(max-height:760px)]:bottom-[47%] lg:inset-x-auto lg:top-[7%] lg:right-[1%] lg:bottom-[5%] lg:left-[37%]"
           />
 
-          {/* Hero : une hauteur d'écran, texte et emplacement de la maquette */}
-          <div className="relative mx-auto grid min-h-svh max-w-7xl grid-rows-[minmax(30svh,1fr)_auto] gap-y-2 px-5 pt-18 pb-14 sm:px-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-1 lg:items-center lg:gap-x-6 lg:pt-24 lg:pb-16 [@media(min-height:560px)]:h-svh">
+          {/* Hero : une hauteur d'écran, texte et emplacement de la maquette.
+              En mode animé, la grille laisse passer les clics (vers les étiquettes de la scène 2) :
+              seul le texte du hero les reçoit, tant qu'il est visible. */}
+          <div className="relative mx-auto grid min-h-svh max-w-7xl grid-rows-[minmax(30svh,1fr)_auto] scene:pointer-events-none gap-y-2 px-5 pt-18 pb-14 sm:px-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:grid-rows-1 lg:items-center lg:gap-x-6 lg:pt-24 lg:pb-16 [@media(min-height:560px)]:h-svh">
             <div ref={heroSlotRef} className="relative row-start-1 min-h-[30svh] lg:col-start-2 lg:h-full lg:min-h-0">
+              {/* Sans JavaScript : la pièce encombrée en image */}
+              <noscript>
+                <img
+                  src={roomImages.before.src}
+                  alt={roomImages.before.alt}
+                  width={roomImages.width}
+                  height={roomImages.height}
+                  className="absolute inset-0 h-full w-full object-contain"
+                />
+              </noscript>
               {/* Sans 3D : la pièce encombrée en image */}
               {!has3D && (
                 <img
@@ -138,6 +165,7 @@ export function RoomStory() {
           <Icon name="arrow-down" className="scroll-cue-bob size-4 text-sangle-deep" />
         </p>
 
+        <SituationsCopy />
         <ClearProgress />
         <ClearedCopy />
       </div>

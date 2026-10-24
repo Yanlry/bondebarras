@@ -1,14 +1,14 @@
 import { memo } from 'react'
 import { ActionLink } from '../../components/ActionLink'
-import { QUOTE_ANCHOR } from '../../data/navigation'
+import { getPage } from '../../data/pages'
+import { quoteLink } from '../../data/quote'
 import { cn } from '../../lib/cn'
-import { quoteDraft } from '../../lib/quoteDraft'
 import { ServiceLine } from './ServiceLine'
 import type { ServiceCardProps } from './types'
 
 /**
- * Une famille de prestations (future zone du plan d'architecte). Le bouton
- * présélectionne le bon type de débarras dans le formulaire de devis.
+ * Une famille de prestations (future zone du plan d'architecte) : « Découvrir »
+ * ouvre sa page, « Devis » ouvre le formulaire avec le bon type présélectionné.
  */
 export const ServiceCard = memo(function ServiceCard({ category }: ServiceCardProps) {
   return (
@@ -30,8 +30,11 @@ export const ServiceCard = memo(function ServiceCard({ category }: ServiceCardPr
           <ServiceLine key={item.label} item={item} />
         ))}
       </ul>
-      <div className="mt-auto pt-7">
-        <ActionLink href={QUOTE_ANCHOR} variant="secondary" icon="arrow" onClick={() => quoteDraft.selectType(category.quoteType)}>
+      <div className="mt-auto flex flex-wrap gap-3 pt-7">
+        <ActionLink href={getPage(category.pageId).path} variant="secondary" icon="arrow">
+          Découvrir
+        </ActionLink>
+        <ActionLink href={quoteLink(category.quoteType)} variant="ghost">
           Devis pour ce débarras
         </ActionLink>
       </div>

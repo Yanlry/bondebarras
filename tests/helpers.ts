@@ -2,12 +2,24 @@ import type { Page, TestInfo } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 
 /** Étape courante du développement : dossier des captures. */
-export const STEP = 'etape-1'
-const SHOTS = `docs/screenshots/${STEP}`
-mkdirSync(SHOTS, { recursive: true })
+export const STEP = 'etape-4'
 
-/** Chemin d'une capture : `docs/screenshots/etape-1/<projet>-<nom>.png`. */
-export const shotPath = (info: TestInfo, name: string): string => `${SHOTS}/${info.project.name}-${name}.png`
+/** Chemin d'une capture : `docs/screenshots/<étape>/<dossier>/<projet>-<nom>.png`. */
+export function shotPath(info: TestInfo, name: string, folder = 'accueil'): string {
+  const dir = `docs/screenshots/${STEP}/${folder}`
+  mkdirSync(dir, { recursive: true })
+  return `${dir}/${info.project.name}-${name}.png`
+}
+
+/** Collecte les erreurs de la page (exceptions, erreurs console, écarts d'hydratation). */
+export function collectErrors(page: Page): string[] {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(`exception : ${error.message}`))
+  page.on('console', (message) => {
+    if (message.type() === 'error' && !message.text().includes('status of 404')) errors.push(`console : ${message.text().slice(0, 300)}`)
+  })
+  return errors
+}
 
 /** Attend la fin de l'écran de chargement, puis la fin de l'intro du hero. */
 export async function waitForSite(page: Page, introMs = 2600): Promise<void> {

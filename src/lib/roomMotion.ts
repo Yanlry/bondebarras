@@ -95,8 +95,12 @@ export function introDuration(plans: readonly ItemPlan[]): number {
   return plans.reduce((max, plan) => Math.max(max, plan.introDelay), 0) + FALL_TIME + BOUNCE_TIME
 }
 
-/** Progression du trajet d'un objet (0 = à sa place, 1 = sorti) pour une progression globale `clear`. */
-export const tripProgress = (plan: ItemPlan, clear: number): number => range(clear, plan.start, plan.end)
+/**
+ * Progression du trajet d'un objet (0 = à sa place, 1 = sorti) pour une progression
+ * globale `clear`, et un éventuel retour (`recall`, 0 → 1) : l'objet refait alors
+ * le même chemin à l'envers et reprend sa place, sans autre calcul.
+ */
+export const tripProgress = (plan: ItemPlan, clear: number, recall = 0): number => range(clear, plan.start, plan.end) * (1 - recall)
 
 /**
  * Pose d'un objet pendant le débarras, pour `t` ∈ [0, 1] :
@@ -162,6 +166,9 @@ export function introOffset(plan: ItemPlan, elapsed: number): { dy: number; wobb
  * apparaît quand il est soulevé, reste pendant que la pièce se vide (on voit
  * la carte de tout ce qui était là), puis toutes s'effacent quand la lumière revient.
  */
-export function footprintOpacity(plan: ItemPlan, clear: number, light: number): number {
-  return smoothstep(0.03, 0.2, tripProgress(plan, clear)) * (1 - smoothstep(0.1, 0.8, light))
+export function footprintOpacity(plan: ItemPlan, clear: number, light: number, recall = 0): number {
+  return smoothstep(0.03, 0.2, tripProgress(plan, clear, recall)) * (1 - smoothstep(0.1, 0.8, light))
 }
+
+/** Somme des retours en cours : sert à savoir si quelque chose a bougé depuis la frame précédente. */
+export const recallSum = (recall: Record<string, number>): number => Object.values(recall).reduce((sum, value) => sum + value, 0)

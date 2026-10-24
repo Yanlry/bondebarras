@@ -9,11 +9,11 @@
 @import './styles/buttons.css';
 
 /* Variante des « scènes au scroll » : même media query que SCROLL_SCENE_QUERY (lib/gsap.ts),
-   et seulement à l'intérieur d'une scène active (`data-scene`, posé par la section).
-   Sans elle (mouvement réduit, écran trop bas, 3D indisponible), le DOM est dans son état statique. */
+   et seulement à l'intérieur d'une scène active (`data-scene`, posé par la section) avec JavaScript (`.js`).
+   Sans elle (mouvement réduit, écran trop bas, 3D indisponible, pas de JS), le DOM est dans son état statique. */
 @custom-variant scene {
   @media (prefers-reduced-motion: no-preference) and (min-height: 560px) {
-    &:where([data-scene], [data-scene] *) {
+    &:where(.js [data-scene], .js [data-scene] *) {
       @slot;
     }
   }
@@ -83,6 +83,13 @@
     outline-offset: 3px;
   }
 
+  /* Sans JavaScript, aucune animation d'entrée ne masque de contenu. */
+  html:not(.js) [data-intro],
+  html:not(.js) [data-intro] * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
   img {
     user-select: none;
     -webkit-user-drag: none;
@@ -116,4 +123,37 @@
 @utility footprint {
   border: 2px dashed var(--color-trace);
   border-radius: 0.6rem;
+}
+
+/* Papier de plan d'architecte : quadrillage fin bleu, fixe (aucune animation). */
+@utility plan-paper {
+  background-color: #fbfaf6;
+  background-image:
+    linear-gradient(rgb(35 70 160 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(35 70 160 / 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Documents légaux : hiérarchie et rythme de lecture. */
+@utility legal-prose {
+  & h2 {
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+
+  & p,
+  & li {
+    margin-top: 0.9rem;
+    line-height: 1.7;
+    color: var(--color-ink-soft);
+  }
+
+  & ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
 }

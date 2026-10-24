@@ -1,9 +1,11 @@
-import { useId, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
-import { ProvisionalText } from '../../components/Provisional'
+import { useId, useRef, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router'
+import { SmartLink } from '../../components/SmartLink'
 import { company } from '../../data/company'
-import { QUOTE_ENDPOINT, quoteTypes } from '../../data/quote'
+import { parseQuoteType, QUOTE_ENDPOINT, quoteTypes } from '../../data/quote'
+import { useHydrated } from '../../hooks/useHydrated'
 import { cn } from '../../lib/cn'
-import { quoteDraft } from '../../lib/quoteDraft'
+import type { QuoteTypeId } from '../../types/quote'
 import type { QuoteFormValues, QuoteStatus } from './types'
 
 const INITIAL: QuoteFormValues = {
@@ -36,11 +38,15 @@ export function QuoteForm() {
   const [values, setValues] = useState<QuoteFormValues>(INITIAL)
   const [status, setStatus] = useState<QuoteStatus>('idle')
   const statusRef = useRef<HTMLParagraphElement>(null)
-  const draftType = useSyncExternalStore(quoteDraft.subscribe, quoteDraft.getType, () => null)
+  const [searchParams] = useSearchParams()
+  const hydrated = useHydrated()
+  // `?type=…` (lien « Devis » d'une prestation) : lu seulement après l'hydratation,
+  // pour que le premier rendu soit identique au HTML pré-rendu.
+  const draftType = hydrated ? parseQuoteType(searchParams.get('type')) : null
 
-  // Type présélectionné depuis une prestation (« Devis pour ce débarras ») :
-  // ajusté pendant le rendu, dès que la présélection change.
-  const [appliedDraft, setAppliedDraft] = useState(draftType)
+  // Type présélectionné : ajusté pendant le rendu, dès que la présélection change
+  // (aussi au premier rendu après une navigation interne, d'où la valeur initiale `null`).
+  const [appliedDraft, setAppliedDraft] = useState<QuoteTypeId | null>(null)
   if (draftType !== appliedDraft) {
     setAppliedDraft(draftType)
     if (draftType) setValues((current) => ({ ...current, type: draftType }))
@@ -66,7 +72,7 @@ export function QuoteForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate={false} className="grid gap-5" aria-describedby={`${id}-note`}>
+    <form onSubmit={handleSubmit} className="grid gap-5" aria-describedby={`${id}-note`} data-hide-action-bar>
       <fieldset>
         <legend className={labelClass}>Vous êtes</legend>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -217,7 +223,10 @@ export function QuoteForm() {
         />
         <span>
           J’accepte que ces informations soient utilisées pour me recontacter au sujet de ma demande de devis.{' '}
-          <span className="provisional">Politique de confidentialité à venir</span>
+          <SmartLink href="/confidentialite" className="font-semibold text-bleu underline">
+            Politique de confidentialité
+          </SmartLink>{' '}
+          (en cours de rédaction).
         </span>
       </label>
 
@@ -238,7 +247,7 @@ export function QuoteForm() {
           <>
             L’envoi en ligne n’est pas encore activé sur ce site. Pour votre demande, appelez-nous au{' '}
             <a href={company.phone.value.href} className="font-semibold underline">
-              <ProvisionalText value={{ value: company.phone.value.display, provisional: company.phone.provisional }} />
+              {company.phone.value.display}
             </a>
             .
           </>

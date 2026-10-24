@@ -1,5 +1,5 @@
-/** Lien de navigation interne (ancre de section). */
+/** Lien de navigation interne (chemin d'une page). */
 export interface NavLink {
   label: string
-  href: `#${string}`
+  href: `/${string}`
 }

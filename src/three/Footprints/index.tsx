@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { InstancedBufferAttribute, Object3D, PlaneGeometry, type InstancedMesh } from 'three'
-import { footprintOpacity } from '../../lib/roomMotion'
+import { footprintOpacity, recallSum } from '../../lib/roomMotion'
 import { createFootprintMaterial } from '../materials/footprintMaterial'
 import type { FootprintsProps } from './types'
 
@@ -54,14 +54,15 @@ export const Footprints = memo(function Footprints({ plans, progress }: Footprin
 
   const last = useRef({ clear: -1, light: -1 })
   useFrame(() => {
-    const { clear, light } = progress.current
-    if (clear === last.current.clear && light === last.current.light) return
-    last.current.clear = clear
+    const { clear, light, recall } = progress.current
+    const motion = clear + recallSum(recall)
+    if (motion === last.current.clear && light === last.current.light) return
+    last.current.clear = motion
     last.current.light = light
     const opacity = geometry.getAttribute('aOpacity') as InstancedBufferAttribute
     let any = false
     grounded.forEach((plan, i) => {
-      const value = footprintOpacity(plan, clear, light)
+      const value = footprintOpacity(plan, clear, light, recall[plan.item.id] ?? 0)
       opacity.setX(i, value)
       any ||= value > 0.005
     })

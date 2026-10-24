@@ -17,7 +17,7 @@ const MARGIN = 40
  */
 export default function RoomCapture({ state }: RoomCaptureProps) {
   const done = state === 'apres' ? 1 : 0
-  const progress = useRef<RoomProgress>({ focus: 0, clear: done, light: done })
+  const progress = useRef<RoomProgress>({ focus: 0, clear: done, light: done, recall: {} })
   const pointer = usePointerRef()
   const slot = { x: MARGIN, y: MARGIN, width: roomImages.width - MARGIN * 2, height: roomImages.height - MARGIN * 2 }
   const handleReady = useCallback(() => {

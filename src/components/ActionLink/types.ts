@@ -2,7 +2,7 @@ import type { AnchorHTMLAttributes } from 'react'
 import type { IconName } from '../Icon/types'
 
 /** Variante visuelle d'un bouton-lien. */
-export type ActionVariant = 'primary' | 'secondary' | 'ghost' | 'inverse'
+export type ActionVariant = 'primary' | 'secondary' | 'ghost' | 'inverse' | 'ghost-inverse'
 
 /** Props de {@link ActionLink}. */
 export interface ActionLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {

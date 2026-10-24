@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Tests de bout en bout sur le **build de production** (`npm run build` d'abord).
+ * Tests de bout en bout sur le **build de production** (`npm run build` d'abord, Node ≥ 22.22).
  * Chromium utilise le GPU réel (Metal) : sans ces drapeaux, WebGL tourne en
  * logiciel (SwiftShader) et ne représente pas un vrai navigateur.
  * Captures enregistrées dans docs/screenshots/etape-N/ (voir tests/helpers.ts).
@@ -17,7 +17,8 @@ export default defineConfig({
     launchOptions: { args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] },
   },
   webServer: {
-    command: 'npx vite preview --port 4173 --strictPort',
+    // Serveur statique fidèle à l'hébergement (URL propres, vraie page 404)
+    command: 'node scripts/serve.mjs 4173',
     url: 'http://localhost:4173',
     reuseExistingServer: true,
     timeout: 30_000,

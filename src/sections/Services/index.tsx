@@ -6,12 +6,12 @@ import { ServiceLine } from './ServiceLine'
  * Prestations de Bon Débarras, en HTML classique : lisibles et indexables
  * indépendamment de toute animation.
  *
- * Version provisoire du prototype : la scène « Le plan d'architecte » viendra
- * mettre ces mêmes contenus en scène (les données restent dans `data/services.ts`).
+ * Version provisoire de l'accueil : la scène 4 « Le plan d'architecte » la
+ * remplacera (même contenu, `data/services.ts`). Chaque famille mène à sa page.
  */
 export function Services() {
   return (
-    <section id="prestations" aria-labelledby="prestations-titre" className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+    <section id="prestations-accueil" aria-labelledby="prestations-titre" className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
       <p className="tag-kraft">Nos prestations</p>
       <h2 id="prestations-titre" className="mt-4 max-w-[20ch] font-display text-[clamp(2.2rem,6vw,3.8rem)] leading-[0.98] font-extrabold tracking-[-0.04em] text-ink">
         Les espaces que nous libérons

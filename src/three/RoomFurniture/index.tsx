@@ -2,7 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { memo, useEffect, useMemo, useRef } from 'react'
 import { MeshStandardMaterial, Raycaster, Vector2, type Mesh } from 'three'
 import { damp } from '../../lib/math'
-import { carryPose, introDuration, introOffset, tripProgress, type ItemPose } from '../../lib/roomMotion'
+import { carryPose, introDuration, introOffset, recallSum, tripProgress, type ItemPose } from '../../lib/roomMotion'
 import { mergeParts } from '../geometry/mergeParts'
 import type { RoomFurnitureProps } from './types'
 
@@ -68,9 +68,10 @@ export const RoomFurniture = memo(function RoomFurniture({
     const now = state.clock.elapsedTime
     if (play && playStart.current === null) playStart.current = now
     const elapsed = still ? Number.POSITIVE_INFINITY : playStart.current === null ? -1 : now - playStart.current
-    const { clear, focus } = progress.current
-    let moving = (elapsed >= 0 && elapsed < introEnd + 0.1) || clear !== lastClear.current
-    lastClear.current = clear
+    const { clear, focus, recall } = progress.current
+    const motion = clear + recallSum(recall)
+    let moving = (elapsed >= 0 && elapsed < introEnd + 0.1) || motion !== lastClear.current
+    lastClear.current = motion
 
     // Survol : seulement dans le hero, une fois l'intro jouée, et si le pointeur a bougé.
     const canHover = interactive && !still && clear < 0.002 && focus < 0.25 && elapsed > introEnd
@@ -91,7 +92,7 @@ export const RoomFurniture = memo(function RoomFurniture({
         mesh.visible = false
         return
       }
-      carryPose(plan, tripProgress(plan, clear), p)
+      carryPose(plan, tripProgress(plan, clear, recall[plan.item.id] ?? 0), p)
 
       const target = i === hovered.current ? 1 : 0
       const current = hover[i] ?? 0
