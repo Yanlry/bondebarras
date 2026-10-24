@@ -1,0 +1,71 @@
+/* =============================================================================
+   Curseur : un cercle en pointillés (l'empreinte) qui suit la souris,
+   et se remplit sur les liens.
+   Uniquement avec une souris (classe posée par useCursor).
+   ============================================================================= */
+
+html.has-trace-cursor,
+html.has-trace-cursor * {
+  cursor: none !important;
+}
+
+/* Champs de formulaire : on garde le curseur texte natif. */
+html.has-trace-cursor :is(input, textarea, select, iframe) {
+  cursor: auto !important;
+}
+
+.trace-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 400;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  will-change: transform;
+}
+
+.trace-cursor[data-visible='true'] {
+  opacity: 1;
+}
+
+.trace-cursor__ring {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed var(--color-bleu);
+  border-radius: 999px;
+  transition:
+    transform 0.3s var(--ease-settle),
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.trace-cursor__dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 999px;
+  background: var(--color-sangle-deep);
+  transition: transform 0.2s var(--ease-out-soft);
+}
+
+.trace-cursor[data-state='link'] .trace-cursor__ring {
+  transform: scale(1.45);
+  border-style: solid;
+  border-color: var(--color-sangle-deep);
+  background-color: rgb(185 61 23 / 0.12);
+}
+
+.trace-cursor[data-state='link'] .trace-cursor__dot {
+  transform: scale(0);
+}
+
+.trace-cursor[data-hidden='true'] {
+  opacity: 0;
+}

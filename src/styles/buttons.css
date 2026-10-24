@@ -1,0 +1,74 @@
+/* =============================================================================
+   Boutons « vivants » : au survol, l'icône est emportée hors du bouton et une
+   copie revient à sa place (comme un carton qu'on sort). Transform seul.
+   ============================================================================= */
+
+.action__icon {
+  position: relative;
+  display: inline-grid;
+  width: 1.15em;
+  height: 1.15em;
+  overflow: hidden;
+  flex: none;
+}
+
+.action__icon > svg {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.42s var(--ease-out-soft);
+}
+
+.action__icon > svg:last-child {
+  transform: translateX(-140%);
+}
+
+@media (hover: hover) {
+  .action:hover .action__icon > svg:first-child {
+    transform: translateX(140%);
+  }
+
+  .action:hover .action__icon > svg:last-child {
+    transform: none;
+  }
+}
+
+.action {
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.25s var(--ease-settle);
+}
+
+.action:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action__icon > svg,
+  .action {
+    transition: none;
+  }
+}
+
+/* Indication de scroll : la flèche descend doucement (élément HTML seul, composité). */
+.scroll-cue-bob {
+  animation: scroll-cue-bob 1.4s var(--ease-out-soft) infinite;
+}
+
+@keyframes scroll-cue-bob {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue-bob {
+    animation: none;
+  }
+}

@@ -1,0 +1,119 @@
+/* =============================================================================
+   Bon Débarras — design system
+   Palette « Bleu de travail » : bleu de la tenue de travail, kraft des cartons,
+   orange de la sangle de déménagement, sur un blanc cassé chaud (« l'air »).
+   ============================================================================= */
+@import 'tailwindcss';
+@import './styles/preloader.css';
+@import './styles/cursor.css';
+@import './styles/buttons.css';
+
+/* Variante des « scènes au scroll » : même media query que SCROLL_SCENE_QUERY (lib/gsap.ts),
+   et seulement à l'intérieur d'une scène active (`data-scene`, posé par la section).
+   Sans elle (mouvement réduit, écran trop bas, 3D indisponible), le DOM est dans son état statique. */
+@custom-variant scene {
+  @media (prefers-reduced-motion: no-preference) and (min-height: 560px) {
+    &:where([data-scene], [data-scene] *) {
+      @slot;
+    }
+  }
+}
+
+@theme {
+  /* — Couleurs de marque — */
+  --color-air: #f6f3ec; /* blanc cassé chaud : fond */
+  --color-air-deep: #ece6da; /* fond des cartes, champs */
+  --color-trace: #d9d3c7; /* empreintes en pointillés, filets */
+  --color-ink: #142033; /* encre : texte (15:1 sur air) */
+  --color-ink-soft: #45506a; /* texte secondaire (7,3:1 sur air) */
+  --color-bleu: #2346a0; /* bleu de travail : couleur de marque (8,5:1 avec le blanc) */
+  --color-bleu-deep: #1a347a; /* bleu foncé : survols, tranche */
+  --color-bleu-soft: #dde4f3; /* bleu très clair : fonds de pastilles */
+  --color-kraft: #c9a27c; /* carton */
+  --color-kraft-light: #e7d6c1; /* carton clair : étiquettes */
+  --color-sangle: #e4572e; /* sangle orange : accent, décor (pas de petit texte blanc dessus) */
+  --color-sangle-deep: #b93d17; /* sangle foncée : boutons principaux (5,6:1 avec le blanc) */
+
+  /* — Typographies — */
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* — Courbes d'animation — */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-garage: cubic-bezier(0.7, 0, 0.2, 1);
+  --ease-settle: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-air);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
+  /* `clip` (et non `hidden`) : ne casse pas les scènes en position: sticky.
+     Sur html ET body : aucun débordement horizontal ne peut faire dézoomer le mobile. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  body {
+    min-height: 100svh;
+    background-color: var(--color-air);
+  }
+
+  /* L'en-tête fixe ne doit pas masquer la cible d'une ancre. */
+  [id] {
+    scroll-margin-top: 5rem;
+  }
+
+  ::selection {
+    background: var(--color-bleu);
+    color: var(--color-air);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-sangle-deep);
+    outline-offset: 3px;
+  }
+
+  img {
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+}
+
+/* Valeur provisoire (téléphone, zone…) : soulignement en pointillés kraft, repérable d'un coup d'œil. */
+@utility provisional {
+  text-decoration: underline dashed var(--color-kraft);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+/* Étiquette kraft (motif récurrent) : texte mono en capitales sur carton clair, trou de ficelle. */
+@utility tag-kraft {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  padding: 0.4em 0.85em 0.4em 0.7em;
+  border-radius: 0.3em;
+  background: var(--color-kraft-light);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Empreinte : contour en pointillés de l'objet enlevé (motif signature). */
+@utility footprint {
+  border: 2px dashed var(--color-trace);
+  border-radius: 0.6rem;
+}

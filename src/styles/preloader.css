@@ -1,0 +1,155 @@
+/* =============================================================================
+   Écran de chargement : une porte de garage à lames, un carton qui se fait
+   scotcher au rythme du chargement, le tampon « Bon Débarras », puis la porte
+   se lève (transform seul). Mêmes classes que la copie statique d'index.html.
+   ============================================================================= */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  /* Lames de la porte : dégradé fixe, l'écran entier se déplace en bloc */
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 70px, rgb(10 20 50 / 0.16) 70px 72px, rgb(255 255 255 / 0.07) 72px 74px),
+    #2346a0;
+  color: #f6f3ec;
+  transition: transform 1.05s var(--ease-garage, cubic-bezier(0.7, 0, 0.2, 1));
+}
+
+/* Barre basse de la porte, avec sa poignée : elle part en dernier */
+.splash::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 22px;
+  background:
+    linear-gradient(#0f1f4d, #0f1f4d) center 6px / 84px 6px no-repeat,
+    #1a347a;
+}
+
+.splash[data-leaving='true'] {
+  transform: translateY(-100%);
+}
+
+.splash__column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.splash__brand {
+  font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.5rem, 6vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Le carton : SVG statique + calques HTML (scotch, tampon) dans le même repère 200 × 170 */
+.splash__box {
+  position: relative;
+  width: min(50vw, 30svh, 260px);
+  aspect-ratio: 200 / 170;
+  container-type: inline-size;
+}
+
+.splash__box svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.splash__tape {
+  position: absolute;
+  background: #e4572e;
+  box-shadow: inset 0 0 0 1px rgb(120 30 10 / 0.18);
+  will-change: transform;
+}
+
+/* Jointure des rabats : de (62, 37) à (138, 75), soit 84,97 unités à 26,565° */
+.splash__tape--top {
+  left: 31%;
+  top: 18.235%;
+  width: 42.485%;
+  height: 7.059%;
+  transform-origin: 0 50%;
+  transform: rotate(26.565deg) scaleX(0);
+}
+
+/* Descente sur la face droite : de (138, 75) sur 70 unités, cisaillée comme la face */
+.splash__tape--side {
+  left: 66%;
+  top: 44.118%;
+  width: 6%;
+  height: 41.176%;
+  transform-origin: 50% 0;
+  transform: skewY(-26.565deg) scaleY(0);
+}
+
+/* Tampon posé sur la face gauche (cisaillée à +26,565°) */
+.splash__stamp {
+  position: absolute;
+  left: 31%;
+  top: 64.7%;
+  translate: -50% -50%;
+  padding: 0.5cqw 2.2cqw;
+  border: 1.2cqw double #1a347a;
+  border-radius: 1.5cqw;
+  color: #1a347a;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 5.4cqw;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  white-space: nowrap;
+  opacity: 0;
+  transform: skewY(26.565deg) rotate(-6deg) scale(1.7);
+  transition:
+    transform 0.32s var(--ease-settle, cubic-bezier(0.34, 1.4, 0.64, 1)),
+    opacity 0.16s linear;
+}
+
+.splash[data-stamped='true'] .splash__stamp {
+  opacity: 0.92;
+  transform: skewY(26.565deg) rotate(-6deg) scale(1);
+}
+
+.splash__percent {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 2.4rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.splash__caption {
+  min-height: 1.3em;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* Moins d'animations : tampon déjà posé, la porte s'efface en fondu. */
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    transition: opacity 0.3s ease;
+  }
+
+  .splash[data-leaving='true'] {
+    transform: none;
+    opacity: 0;
+  }
+
+  .splash__stamp {
+    transition: none;
+  }
+}
